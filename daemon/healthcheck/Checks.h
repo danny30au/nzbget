@@ -26,48 +26,51 @@
 
 namespace HealthCheck::Checks
 {
-	using SpecFunc = std::function<Check()>;
+	using CheckFunc = std::function<Check()>;
 
-	template<typename... Specs>
-	auto ComposeSpecs(Specs... specs)
+	template<typename... Checks>
+	inline auto ComposeChecks(Checks... checks)
 	{
 		return [=](auto&&... args) -> Check
-			{
-				Check result = Check::Ok();
-				([&] {
-					result = std::invoke(specs, std::forward<decltype(args)>(args)...);
-					return result.IsOk();
-					}() && ...);
-				return result;
-			};
+		{
+			Check result = Check::Ok();
+			([&] {
+				result = std::invoke(checks, std::forward<decltype(args)>(args)...);
+				return result.IsOk();
+			}() && ...);
+			return result;
+		};
 	}
 
 	Check CheckRequiredOption(std::string_view name, std::string_view value);
-	Check CheckValueUnique(std::string_view name, std::string_view value, std::vector<std::pair<std::string_view, std::string_view>> otherValues);
+	Check CheckValueUnique(
+		std::string_view name, 
+		std::string_view value, 
+		const std::vector<std::pair<std::string_view, std::string_view>>& otherValues);
 	Check CheckRequiredOption(std::string_view name, std::string_view value);
-	Check CheckRequiredDir(std::string_view name, std::string_view path);
-	Check CheckOptionalDir(std::string_view name, std::string_view path);
-	Check CheckInterDirOption(std::string_view value);
+	Check CheckRequiredDir(std::string_view name, std::string_view value);
+	Check CheckOptionalDir(std::string_view name, std::string_view value);
 
-	Check CheckLogFile(std::string_view path, Options::EWriteLog writeLog);
-	Check CheckCertStore(std::string_view path, bool isCertCheckActive);
+	Check CheckInterDirConfiguration(const Options& options);
+	Check CheckLoggingConfiguration(const Options& options);
+	Check CheckCertStoreConfiguration(const Options& options);
 
 #ifndef _WIN32
-	Check CheckLockFile(std::string_view path);
+	Check CheckLockFileConfiguration(const Options& options);
 #endif
 
 	namespace File
 	{
-		bool Exists(std::string_view path);
-		bool Readable(std::string_view path);
-		bool Writable(std::string_view path);
-		bool Executable(std::string_view path);
+		Check Exists(std::string_view name, std::string_view value);
+		Check Readable(std::string_view name, std::string_view value);
+		Check Writable(std::string_view name, std::string_view value);
+		Check Executable(std::string_view name, std::string_view value);
 	}
 
 	namespace Directory
 	{
-		Check Readable(std::string_view name, std::string_view path);
-		Check Writable(std::string_view name, std::string_view path);
+		Check Readable(std::string_view name, std::string_view value);
+		Check Writable(std::string_view name, std::string_view value);
 	}
 }
 

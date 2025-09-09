@@ -697,6 +697,7 @@ var Config = (new function($)
 	var $ConfigInfo;
 	var $ConfigLicenses;
 	var $ConfigTitle;
+	var $ConfigTitleStatus;
 	var $ConfigTable;
 	var $ViewButton;
 	var $LeaveConfigDialog;
@@ -727,6 +728,7 @@ var Config = (new function($)
 		$ConfigInfo = $('#ConfigInfo');
 		$ConfigLicenses = $('#ConfigLicenses');
 		$ConfigTitle = $('#ConfigTitle');
+		$ConfigTitleStatus = $('#ConfigTitleStatus');
 		$ViewButton = $('#Config_ViewButton');
 		$LeaveConfigDialog = $('#LeaveConfigDialog');
 		$('#ConfigTable_filter').val('');
@@ -1537,6 +1539,7 @@ var Config = (new function($)
 			$ConfigInfo.show();
 			$ConfigData.children().hide();
 			$ConfigTitle.text('INFO');
+			$ConfigTitleStatus.hide();
 			return;
 		}
 
@@ -1546,6 +1549,7 @@ var Config = (new function($)
 			$('.config-status', $ConfigData).show();
 			SystemInfo.loadSystemInfo();
 			$ConfigTitle.text('STATUS');
+			$ConfigTitleStatus.show();
 			return;
 		}
 
@@ -1563,6 +1567,7 @@ var Config = (new function($)
 			$('.config-system', $ConfigData).show();
 			markLastControlGroup();
 			$ConfigTitle.text('SYSTEM');
+			$ConfigTitleStatus.hide();
 			return;
 		}
 
@@ -1571,6 +1576,7 @@ var Config = (new function($)
 			$ConfigData.children().hide();
 			markLastControlGroup();
 			$ConfigTitle.text('EXTENSION MANAGER');
+			$ConfigTitleStatus.hide();
 			ExtensionManager.downloadRemoteExtensions();
 			return;
 		}
@@ -1582,6 +1588,7 @@ var Config = (new function($)
 
 		var section = findSectionById(sectionId);
 		$ConfigTitle.text(section.caption ? section.caption : section.name);
+		$ConfigTitleStatus.hide();
 
 		$Body.animate({ scrollTop: 0 }, { duration: animateScroll ? 'slow' : 0, easing: 'swing' });
 	}

@@ -23,15 +23,17 @@
 #include <vector>
 #include <string_view>
 #include <unordered_map>
-#include "Check.h"
+#include "Checks.h"
 
 namespace HealthCheck
 {
 	using Report = std::unordered_map<std::string_view, Check>;
+	using Sections = std::vector<std::pair<std::string_view, Report>>;
+	using ChecksRepository = std::unordered_map<std::string_view, Checks::CheckFunc>;
 
 	struct HealthReport
 	{
-		std::vector<std::pair<std::string_view, Report>> sections;
+		Sections sections;
 		Report general;
 	};
 
@@ -47,8 +49,9 @@ namespace HealthCheck
 		const HealthReport& GetReport() const { return m_report; }
 
 	private:
-		HealthReport CheckUp() const;
+		HealthReport CheckUp();
 		HealthReport m_report;
+		ChecksRepository m_checks;
 	};
 
 	std::string ToJsonStr(const HealthReport& report);

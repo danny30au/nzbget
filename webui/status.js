@@ -50,6 +50,8 @@ var Status = (new function($)
 	var $ScheduledPauseDialog;
 	var $PauseForInput;
 	var $PauseForPreview;
+	var $ConfigTitle;
+	var $ConfigTitleStatus;
 
 	var $SystemInfo_Health;
 
@@ -91,6 +93,8 @@ var Status = (new function($)
 		$ScheduledPauseDialog = $('#ScheduledPauseDialog');
 		$PauseForInput = $('#PauseForInput');
 		$PauseForPreview = $('#PauseForPreview');
+		$ConfigTitle = $('#ConfigTitle');
+		$ConfigTitleStatus = $('#ConfigTitleStatus');
 
 		$SystemInfo_Health = $('#SystemInfo_Health');
 
@@ -142,6 +146,7 @@ var Status = (new function($)
 		var generalErrors = health['General'];
 
 		$SystemInfo_Health.empty();
+		$ConfigTitleStatus.empty();
 		if (generalErrors && Object.entries(generalErrors).length)
 		{
 			$SystemInfo_Health.show();
@@ -173,7 +178,7 @@ var Status = (new function($)
 		}
 		else
 		{
-			$SystemInfo_Health.append('<p class="text-success">OK</span></p>');
+			$ConfigTitleStatus.append('<span class="text-success">OK</>');
 		}
 	}
 

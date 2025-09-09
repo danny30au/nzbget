@@ -35,19 +35,19 @@ namespace HealthCheck
 		m_report = CheckUp();
 	}
 
-	HealthReport HealthMonitor::CheckUp() const
+	HealthReport HealthMonitor::CheckUp()
 	{
 		HealthReport report;
-		std::vector<std::pair<std::string_view, Report>> sections;
+		Sections sections;
 		Report pathsSection;
 		Report general;
 
-		const auto mainDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::MAINDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredOption(Options::MAINDIR, g_Options->GetMainDir()); },
 			[]() { return Checks::CheckRequiredDir(Options::MAINDIR, g_Options->GetMainDir()); },
 			[]() { return Checks::Directory::Writable(Options::MAINDIR, g_Options->GetMainDir()); }
 		);
-		const auto destDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::DESTDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredOption(Options::DESTDIR, g_Options->GetDestDir()); },
 			[]() { return Checks::CheckRequiredDir(Options::DESTDIR, g_Options->GetDestDir()); },
 			[]() { return Checks::Directory::Writable(Options::DESTDIR, g_Options->GetDestDir()); },
@@ -57,8 +57,8 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto interDirCheck = Checks::ComposeSpecs(
-			[]() { return Checks::CheckInterDirOption(g_Options->GetInterDir()); },
+		m_checks[Options::INTERDIR] = Checks::ComposeChecks(
+			[]() { return Checks::CheckInterDirConfiguration(*g_Options); },
 			[]() { return Checks::CheckRequiredDir(Options::INTERDIR, g_Options->GetInterDir()); },
 			[]() { return Checks::Directory::Writable(Options::INTERDIR, g_Options->GetInterDir()); },
 			[]() { return Checks::CheckValueUnique(Options::INTERDIR, g_Options->GetInterDir(),
@@ -68,7 +68,7 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto nzbDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::NZBDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredOption(Options::NZBDIR, g_Options->GetNzbDir()); },
 			[]() { return Checks::CheckRequiredDir(Options::NZBDIR, g_Options->GetNzbDir()); },
 			[]() { return Checks::Directory::Writable(Options::NZBDIR, g_Options->GetNzbDir()); },
@@ -80,7 +80,7 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto queueDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::QUEUEDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredOption(Options::QUEUEDIR, g_Options->GetQueueDir()); },
 			[]() { return Checks::CheckRequiredDir(Options::QUEUEDIR, g_Options->GetQueueDir()); },
 			[]() { return Checks::Directory::Writable(Options::QUEUEDIR, g_Options->GetQueueDir()); },
@@ -93,7 +93,7 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto tmpDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::WEBDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredDir(Options::WEBDIR, g_Options->GetWebDir()); },
 			[]() { return Checks::Directory::Readable(Options::WEBDIR, g_Options->GetWebDir()); },
 			[]() { return Checks::CheckValueUnique(Options::WEBDIR, g_Options->GetWebDir(),
@@ -107,7 +107,7 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto webDirCheck = Checks::ComposeSpecs(
+		m_checks[Options::TEMPDIR] = Checks::ComposeChecks(
 			[]() { return Checks::CheckRequiredOption(Options::TEMPDIR, g_Options->GetTempDir()); },
 			[]() { return Checks::CheckRequiredDir(Options::TEMPDIR, g_Options->GetTempDir()); },
 			[]() { return Checks::Directory::Writable(Options::TEMPDIR, g_Options->GetTempDir()); },
@@ -121,11 +121,11 @@ namespace HealthCheck
 				});
 			}
 		);
-		const auto scriptDirCheck = Checks::ComposeSpecs(
-			[]() { return Checks::CheckRequiredOption(Options::TEMPDIR, g_Options->GetTempDir()); },
-			[]() { return Checks::CheckRequiredDir(Options::TEMPDIR, g_Options->GetTempDir()); },
-			[]() { return Checks::Directory::Writable(Options::TEMPDIR, g_Options->GetTempDir()); },
-			[]() { return Checks::CheckValueUnique(Options::TEMPDIR, g_Options->GetTempDir(),
+		m_checks[Options::SCRIPTDIR] = Checks::ComposeChecks(
+			[]() { return Checks::CheckRequiredOption(Options::SCRIPTDIR, g_Options->GetScriptDir()); },
+			[]() { return Checks::CheckRequiredDir(Options::SCRIPTDIR, g_Options->GetScriptDir()); },
+			[]() { return Checks::Directory::Writable(Options::SCRIPTDIR, g_Options->GetScriptDir()); },
+			[]() { return Checks::CheckValueUnique(Options::SCRIPTDIR, g_Options->GetScriptDir(),
 				{
 					{ Options::MAINDIR, g_Options->GetMainDir() },
 					{ Options::DESTDIR, g_Options->GetDestDir() },
@@ -136,52 +136,48 @@ namespace HealthCheck
 				});
 			}
 		);
-
-		pathsSection[Options::MAINDIR] = mainDirCheck();
-		if (!pathsSection[Options::MAINDIR].IsOk())
+		m_checks[Options::CONFIGTEMPLATE] = Checks::ComposeChecks(
+			[]() { return Checks::CheckRequiredOption(Options::CONFIGTEMPLATE, g_Options->GetConfigTemplate()); },
+			[]() { return Checks::File::Exists(Options::CONFIGTEMPLATE, g_Options->GetConfigTemplate()); },
+			[]() { return Checks::File::Readable(Options::CONFIGTEMPLATE, g_Options->GetConfigTemplate()); },
+			[]() { return Checks::File::Writable(Options::CONFIGTEMPLATE, g_Options->GetConfigTemplate()); }
+		);
+		m_checks[Options::LOGFILE] = Checks::ComposeChecks(
+			[]() { return Checks::CheckLoggingConfiguration(*g_Options); }
+		);
+		m_checks[Options::CERTSTORE] = Checks::ComposeChecks(
+			[]() { return Checks::CheckCertStoreConfiguration(*g_Options); }
+		);
+		m_checks[Options::REQUIREDDIR] = Checks::ComposeChecks(
+			[]() { return Check::Ok(); }
+		);
+#ifndef _WIN32
+		m_checks[Options::LOCKFILE] = Checks::ComposeChecks(
+			[]() { return Checks::CheckLockFileConfiguration(*g_Options); }
+		);
+#endif	
+		pathsSection[Options::MAINDIR] = m_checks[Options::MAINDIR]();
+		pathsSection[Options::DESTDIR] = m_checks[Options::DESTDIR]();
+		pathsSection[Options::INTERDIR] = m_checks[Options::INTERDIR]();
+		pathsSection[Options::NZBDIR] = m_checks[Options::NZBDIR]();
+		pathsSection[Options::QUEUEDIR] = m_checks[Options::QUEUEDIR]();
+		pathsSection[Options::TEMPDIR] = m_checks[Options::TEMPDIR]();
+		pathsSection[Options::WEBDIR] = m_checks[Options::WEBDIR]();
+		pathsSection[Options::SCRIPTDIR] = m_checks[Options::SCRIPTDIR]();
+		pathsSection[Options::LOGFILE] = m_checks[Options::LOGFILE]();
+		pathsSection[Options::CERTSTORE] = m_checks[Options::CERTSTORE]();
+		pathsSection[Options::REQUIREDDIR] = m_checks[Options::REQUIREDDIR]();
+		pathsSection[Options::CONFIGTEMPLATE] = m_checks[Options::CONFIGTEMPLATE]();
+#ifndef _WIN32
+		pathsSection[Options::LOCKFILE] = m_checks[Options::LOCKFILE]();
+#endif
+		for( const auto&[opt, check] : pathsSection)
 		{
-			general[Options::MAINDIR] = pathsSection[Options::MAINDIR];
+			if (!check.IsOk())
+			{
+				general[opt] = check;
+			}
 		}
-		pathsSection[Options::DESTDIR] = destDirCheck();
-		if (!pathsSection[Options::DESTDIR].IsOk())
-		{
-			general[Options::DESTDIR] = pathsSection[Options::DESTDIR];
-		}
-		pathsSection[Options::INTERDIR] = interDirCheck();
-		if (!pathsSection[Options::INTERDIR].IsOk())
-		{
-			general[Options::INTERDIR] = pathsSection[Options::INTERDIR];
-		}
-		pathsSection[Options::NZBDIR] = nzbDirCheck();
-		if (!pathsSection[Options::NZBDIR].IsOk())
-		{
-			general[Options::NZBDIR] = pathsSection[Options::NZBDIR];
-		}
-		pathsSection[Options::QUEUEDIR] = queueDirCheck();
-		if (!pathsSection[Options::QUEUEDIR].IsOk())
-		{
-			general[Options::QUEUEDIR] = pathsSection[Options::QUEUEDIR];
-		}
-		pathsSection[Options::TEMPDIR] = tmpDirCheck();
-		if (!pathsSection[Options::TEMPDIR].IsOk())
-		{
-			general[Options::TEMPDIR] = pathsSection[Options::TEMPDIR];
-		}
-		pathsSection[Options::WEBDIR] = webDirCheck();
-		if (!pathsSection[Options::WEBDIR].IsOk())
-		{
-			general[Options::WEBDIR] = pathsSection[Options::WEBDIR];
-		}
-		pathsSection[Options::SCRIPTDIR] = scriptDirCheck();
-		if (!pathsSection[Options::SCRIPTDIR].IsOk())
-		{
-			general[Options::SCRIPTDIR] = pathsSection[Options::SCRIPTDIR];
-		}
-		// pathsSection[Options::LOGFILE] = Checks::CheckLogFile(g_Options->GetLogFile(), g_Options->GetWriteLog());
-// 		pathsSection[Options::CERTSTORE] = Checks::CheckCertStore(g_Options->GetCertStore(), g_Options->GetCertCheck());
-// #ifndef _WIN32
-// 		pathsSection[Options::LOCKFILE] = Checks::CheckLockFile(g_Options->GetLockFile());
-// #endif
 		sections.push_back({ "Paths", std::move(pathsSection) });
 
 		report.sections.swap(sections);

@@ -366,17 +366,17 @@ public:
 	// Options
 	const char* GetConfigFilename() const { return m_configFilename; }
 	bool GetConfigErrors() { return m_configErrors; }
-	const char* GetMainDir() { return m_mainDir; }
-	const char* GetAppDir() { return m_appDir; }
-	const char* GetDestDir() { return m_destDir; }
-	const char* GetInterDir() { return m_interDir; }
-	const char* GetTempDir() { return m_tempDir; }
-	const char* GetQueueDir() { return m_queueDir; }
-	const char* GetNzbDir() { return m_nzbDir; }
-	const char* GetWebDir() { return m_webDir; }
-	const char* GetConfigTemplate() { return m_configTemplate; }
+	const char* GetMainDir() const { return m_mainDir; }
+	const char* GetAppDir() const { return m_appDir; }
+	const char* GetDestDir() const { return m_destDir; }
+	const char* GetInterDir() const { return m_interDir; }
+	const char* GetTempDir() const { return m_tempDir; }
+	const char* GetQueueDir() const { return m_queueDir; }
+	const char* GetNzbDir() const { return m_nzbDir; }
+	const char* GetWebDir() const { return m_webDir; }
+	const char* GetConfigTemplate() const { return m_configTemplate; }
 	const char* GetScriptDir() const { return m_scriptDir; }
-	const char* GetRequiredDir() { return m_requiredDir; }
+	const char* GetRequiredDir() const { return m_requiredDir; }
 	bool GetNzbLog() const { return m_nzbLog; }
 	EMessageTarget GetInfoTarget() const { return m_infoTarget; }
 	EMessageTarget GetWarningTarget() const { return m_warningTarget; }
@@ -410,16 +410,16 @@ public:
 	int GetSecurePort() { return m_securePort; }
 	const char* GetSecureCert() { return m_secureCert; }
 	const char* GetSecureKey() { return m_secureKey; }
-	const char* GetCertStore() { return m_certStore; }
-	bool GetCertCheck() { return m_certCheck; }
+	const char* GetCertStore() const { return m_certStore; }
+	bool GetCertCheck() const { return m_certCheck; }
 	const char* GetAuthorizedIp() { return m_authorizedIp; }
-	const char* GetLockFile() { return m_lockFile; }
+	const char* GetLockFile() const { return m_lockFile; }
 	const char* GetDaemonUsername() { return m_daemonUsername; }
 	EOutputMode GetOutputMode() { return m_outputMode; }
 	int GetUrlConnections() { return m_urlConnections; }
 	int GetLogBuffer() { return m_logBuffer; }
-	EWriteLog GetWriteLog() { return m_writeLog; }
-	const char* GetLogFile() { return m_logFile; }
+	EWriteLog GetWriteLog() const { return m_writeLog; }
+	const char* GetLogFile() const { return m_logFile; }
 	int GetRotateLog() { return m_rotateLog; }
 	EParCheck GetParCheck() { return m_parCheck; }
 	bool GetParRepair() { return m_parRepair; }
@@ -487,7 +487,7 @@ public:
 	void SetServerMode(bool serverMode) { m_serverMode = serverMode; }
 	bool GetServerMode() { return m_serverMode; }
 	void SetDaemonMode(bool daemonMode) { m_daemonMode = daemonMode; }
-	bool GetDaemonMode() { return m_daemonMode; }
+	bool GetDaemonMode() const { return m_daemonMode; }
 	void SetRemoteClientMode(bool remoteClientMode) { m_remoteClientMode = remoteClientMode; }
 	bool GetRemoteClientMode() { return m_remoteClientMode; }
 
