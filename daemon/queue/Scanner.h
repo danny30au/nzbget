@@ -25,6 +25,7 @@
 
 #include <mutex>
 #include <string>
+#include <boost/filesystem.hpp>
 #include "DownloadInfo.h"
 #include "Thread.h"
 #include "Service.h"
@@ -42,6 +43,20 @@ public:
 
 	void InitOptions();
 	void ScanNzbDir(bool syncMode);
+	EAddStatus AddArchive(
+		const char* filename,
+		const char* category,
+		bool autoCategory,
+		int priority,
+		const char* dupeKey,
+		int dupeScore,
+		EDupeMode dupeMode,
+		NzbParameterList* parameters,
+		bool addTop,
+		bool addPaused,
+		const char* buffer,
+		int bufSize
+	);
 	EAddStatus AddExternalFile(
 		const char* nzbName, 
 		const char* category,
@@ -155,6 +170,9 @@ private:
 	 * Otherwise, the detected category (if any) is set directly.
 	 */
 	void DetectAndSetCategory(const NzbFile& nzbFile, NzbInfo& nzbInfo, const char* nzbName);
+	void CheckIncomingArchives(std::string_view directory);
+	std::vector<boost::filesystem::path> FindArchives(std::string_view directory);
+	void UnpackArchives(const std::vector<boost::filesystem::path>& archives);
 	void CheckIncomingNzbs(const char* directory, const char* category, bool checkStat);
 	bool AddFileToQueue(
 		const char* filename, 

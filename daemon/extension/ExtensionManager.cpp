@@ -115,27 +115,25 @@ namespace ExtensionManager
 			return std::string("\"SevenZipCmd\" is not specified");
 		}
 
-		UnpackController unpacker;
-		std::string outputDir = "-o" + dest;
-		UnpackController::ArgList args = {
-			g_Options->GetSevenZipCmd(),
-			"x",
-			filename.c_str(),
-			outputDir.c_str(),
-			"-y",
-		};
-		unpacker.SetArgs(std::move(args));
-		
-		int ec = unpacker.Execute();
-
-		if (ec < 0)
+		const auto extractor = Unpack::MakeExtractor(
+			filename,
+			dest,
+			"",
+			Unpack::OverwriteMode::Overwrite
+		);
+		if (!extractor)
 		{
-			return "Failed to unpack " + filename + ". Make sure that the path to 7-Zip is valid.";
+			return std::string("7-Zip or Unrar tool is not configured. Please check ") 
+				+ Options::SEVENZIPCMD.data() 
+				+ " and " 
+				+ Options::UNRARCMD.data()
+				+ " settings.";
 		}
 
-		if (ec > 0)
+		const auto result = extractor->Extract();
+		if (!result.success)
 		{
-			return "Failed to unpack " + filename + ". " + UnpackController::DecodeSevenZipExitCode(ec);
+			return "Failed to unpack " + filename + ": " + std::string(result.message);
 		}
 
 		if (!FileSystem::DeleteFile(filename.c_str()))

@@ -107,10 +107,10 @@ int getopt(int argc, char *argv[], char *optstring)
 #endif
 
 #ifdef WIN32
-const char* Util::NULL_OUTPUT = " >nul 2>nul";
+const char* Util::NULL_OUTPUT = " >nul 2>&1";
 const char* Util::FIND_CMD = "where ";
 #else
-const char* Util::NULL_OUTPUT = " > /dev/null 2> /dev/null";
+const char* Util::NULL_OUTPUT = " >/dev/null 2>&1";
 const char* Util::FIND_CMD = "which ";
 #endif
 
@@ -828,6 +828,14 @@ bool Util::StrCaseCmp(const std::string& a, const std::string& b)
 	};
 
     return std::equal(a.begin(), a.end(), b.begin(), b.end(), comparator);
+}
+
+bool Util::EndsWith(std::string_view str, std::string_view suffix)
+{
+	if (str.size() < suffix.size())
+		return false;
+
+	return str.rfind(suffix) == str.size() - suffix.size();
 }
 
 // prevent PC from going to sleep
